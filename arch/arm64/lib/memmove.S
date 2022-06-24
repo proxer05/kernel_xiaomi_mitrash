@@ -21,11 +21,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <linux/linkage.h>
 #include <asm/assembler.h>
 #include <asm/cache.h>
-
 /*
  * Move a buffer from src to test (alignment handled by the hardware).
  * If dest <= src, call memcpy, otherwise copy in reverse order.
@@ -47,7 +45,6 @@ tmp2w	.req	w4
 tmp3	.req	x5
 tmp3w	.req	w5
 dst	.req	x6
-
 A_l	.req	x7
 A_h	.req	x8
 B_l	.req	x9
@@ -56,22 +53,17 @@ C_l	.req	x11
 C_h	.req	x12
 D_l	.req	x13
 D_h	.req	x14
-
-	.weak memmove
 ENTRY(__memmove)
-ENTRY(memmove)
-	prfm    pldl1strm, [src, #L1_CACHE_BYTES]
+WEAK(memmove)
 	cmp	dstin, src
 	b.lo	__memcpy
 	add	tmp1, src, count
 	cmp	dstin, tmp1
 	b.hs	__memcpy		/* No overlap.  */
-
 	add	dst, dstin, count
 	add	src, src, count
 	cmp	count, #16
 	b.lo	.Ltail15  /*probably non-alignment accesses.*/
-
 	ands	tmp2, src, #15     /* Bytes to reach alignment.  */
 	b.eq	.LSrcAligned
 	sub	count, count, tmp2
@@ -95,11 +87,9 @@ ENTRY(memmove)
 	tbz	tmp2, #3, .LSrcAligned
 	ldr	tmp1, [src, #-8]!
 	str	tmp1, [dst, #-8]!
-
 .LSrcAligned:
 	cmp	count, #64
 	b.ge	.Lcpy_over64
-
 	/*
 	* Deal with small copies quickly by dropping straight into the
 	* exit block.
@@ -122,7 +112,6 @@ ENTRY(memmove)
 2:
 	ldp	A_l, A_h, [src, #-16]!
 	stp	A_l, A_h, [dst, #-16]!
-
 .Ltail15:
 	tbz	count, #3, 1f
 	ldr	tmp1, [src, #-8]!
@@ -139,10 +128,8 @@ ENTRY(memmove)
 	tbz	count, #0, .Lexitfunc
 	ldrb	tmp1w, [src, #-1]
 	strb	tmp1w, [dst, #-1]
-
 .Lexitfunc:
 	ret
-
 .Lcpy_over64:
 	subs	count, count, #128
 	b.ge	.Lcpy_body_large
@@ -158,11 +145,9 @@ ENTRY(memmove)
 	stp	C_l, C_h, [dst, #-48]
 	ldp	D_l, D_h, [src, #-64]!
 	stp	D_l, D_h, [dst, #-64]!
-
 	tst	count, #0x3f
 	b.ne	.Ltail63
 	ret
-
 	/*
 	* Critical loop. Start at a new cache line boundary. Assuming
 	* 64 bytes per line this ensures the entire loop is in one line.
@@ -187,14 +172,12 @@ ENTRY(memmove)
 	ldp	C_l, C_h, [src, #-48]
 	stp	D_l, D_h, [dst, #-64]!
 	ldp	D_l, D_h, [src, #-64]!
-	prfm    pldl1strm, [src, #(4*L1_CACHE_BYTES)]
 	subs	count, count, #64
 	b.ge	1b
 	stp	A_l, A_h, [dst, #-16]
 	stp	B_l, B_h, [dst, #-32]
 	stp	C_l, C_h, [dst, #-48]
 	stp	D_l, D_h, [dst, #-64]!
-
 	tst	count, #0x3f
 	b.ne	.Ltail63
 	ret
