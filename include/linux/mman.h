@@ -1,13 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 #ifndef _LINUX_MMAN_H
 #define _LINUX_MMAN_H
-
 #include <linux/mm.h>
 #include <linux/percpu_counter.h>
-
 #include <linux/atomic.h>
 #include <uapi/linux/mman.h>
-
 /*
  * Arrange for legacy / undefined architecture specific flags to be
  * ignored by mmap handling code.
@@ -27,7 +24,6 @@
 #ifndef MAP_SYNC
 #define MAP_SYNC 0
 #endif
-
 /*
  * The historical set of flags that all mmap implementations implicitly
  * support when a ->mmap_validate() op is not provided in file_operations.
@@ -49,42 +45,33 @@
 		| MAP_32BIT \
 		| MAP_HUGE_2MB \
 		| MAP_HUGE_1GB)
-
 extern int sysctl_overcommit_memory;
 extern int sysctl_overcommit_ratio;
 extern unsigned long sysctl_overcommit_kbytes;
 extern struct percpu_counter vm_committed_as;
-
 #ifdef CONFIG_SMP
 extern s32 vm_committed_as_batch;
 #else
 #define vm_committed_as_batch 0
 #endif
-
 unsigned long vm_memory_committed(void);
-
 static inline void vm_acct_memory(long pages)
 {
 	percpu_counter_add_batch(&vm_committed_as, pages, vm_committed_as_batch);
 }
-
 static inline void vm_unacct_memory(long pages)
 {
 	vm_acct_memory(-pages);
 }
-
 /*
  * Allow architectures to handle additional protection bits
  */
-
 #ifndef arch_calc_vm_prot_bits
 #define arch_calc_vm_prot_bits(prot, pkey) 0
 #endif
-
 #ifndef arch_vm_get_page_prot
 #define arch_vm_get_page_prot(vm_flags) __pgprot(0)
 #endif
-
 #ifndef arch_validate_prot
 /*
  * This is called from mprotect().  PROT_GROWSDOWN and PROT_GROWSUP have
@@ -98,7 +85,6 @@ static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
 }
 #define arch_validate_prot arch_validate_prot
 #endif
-
 /*
  * Optimisation macro.  It is equivalent to:
  *      (x & bit1) ? bit2 : 0
@@ -109,7 +95,6 @@ static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
   ((!(bit1) || !(bit2)) ? 0 : \
   ((bit1) <= (bit2) ? ((x) & (bit1)) * ((bit2) / (bit1)) \
    : ((x) & (bit1)) / ((bit1) / (bit2))))
-
 /*
  * Combine the mmap "prot" argument into "vm_flags" used internally.
  */
@@ -121,7 +106,6 @@ calc_vm_prot_bits(unsigned long prot, unsigned long pkey)
 	       _calc_vm_trans(prot, PROT_EXEC,  VM_EXEC) |
 	       arch_calc_vm_prot_bits(prot, pkey);
 }
-
 /*
  * Combine the mmap "flags" argument into "vm_flags" used internally.
  */
@@ -133,6 +117,5 @@ calc_vm_flag_bits(unsigned long flags)
 	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    ) |
 	       _calc_vm_trans(flags, MAP_SYNC,	     VM_SYNC      );
 }
-
 unsigned long vm_commit_limit(void);
 #endif /* _LINUX_MMAN_H */
