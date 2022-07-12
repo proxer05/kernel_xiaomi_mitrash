@@ -21,8 +21,8 @@
 					compatible = "android,vendor";
 					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/vendor";
 					type = "ext4";
-					mnt_flags = "ro,barrier=1,discard";
-					fsmgr_flags = "wait,slotselect";
+					mnt_flags = "ro,barrier=1";
+					fsmgr_flags = "wait,slotselect,logical,first_stage_mount";
 					status = "ok";
 				};
 
@@ -30,9 +30,9 @@
 					compatible = "android,system";
 					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/system";
 					type = "ext4";
-					mnt_flags = "ro,barrier=1,discard";
-					fsmgr_flags = "wait,slotselect";
-					status = "disable";
+					mnt_flags = "ro,barrier=1";
+					fsmgr_flags = "wait,slotselect,logical,first_stage_mount";
+					status = "ok";
                                 };
                         };
                 };
